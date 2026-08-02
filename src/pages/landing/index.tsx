@@ -5,18 +5,11 @@ import { LandingNavbar } from "@/components/landing/navbar"
 import { LandingHero } from "@/components/landing/hero"
 import { AboutSection, ServicesSection } from "@/components/landing/about"
 import { DepartmentsSection } from "@/components/landing/departments"
-import { ModulesSection } from "@/components/landing/modules"
 import { ResourcesSection } from "@/components/landing/resources"
-import { AnnouncementsSection } from "@/components/landing/announcements"
-import { WorkflowSection } from "@/components/landing/workflow"
-import { SecuritySection } from "@/components/landing/security"
 import { ContactSection } from "@/components/landing/contact"
 import { LandingFooter } from "@/components/landing/footer"
 import {
   BackToTopButton,
-  ChatWidget,
-  CommandHint,
-  CommandPalette,
   CookieBanner,
   CustomCursor,
   LandingLoadingScreen,
@@ -25,29 +18,10 @@ import {
 
 export function LandingPage() {
   const [loading, setLoading] = useState(true)
-  const [cmdOpen, setCmdOpen] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1100)
     return () => clearTimeout(t)
-  }, [])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault()
-        setCmdOpen((o) => !o)
-      }
-      if (e.key === "Escape") setCmdOpen(false)
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [])
-
-  useEffect(() => {
-    const handler = () => setCmdOpen(true)
-    window.addEventListener("nexushr:cmd", handler)
-    return () => window.removeEventListener("nexushr:cmd", handler)
   }, [])
 
   return (
@@ -60,22 +34,15 @@ export function LandingPage() {
       <main>
         <LandingHero />
         <AboutSection />
-        <DepartmentsSection />
         <ServicesSection />
-        <ModulesSection />
+        <DepartmentsSection />
         <ResourcesSection />
-        <AnnouncementsSection />
-        <WorkflowSection />
-        <SecuritySection />
         <ContactSection />
       </main>
 
       <LandingFooter />
 
-      <CommandHint />
-      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
       <CookieBanner />
-      <ChatWidget />
       <BackToTopButton />
       <MobileBottomNav />
       <div className="h-16 lg:hidden" />

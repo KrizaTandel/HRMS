@@ -15,6 +15,7 @@ import { EmployeeProfilePage } from "@/pages/employee/profile"
 import { EmployeeAttendancePage } from "@/pages/employee/attendance"
 import { EmployeeLeavePage } from "@/pages/employee/leaves"
 import { EmployeePayrollPage } from "@/pages/employee/payroll"
+import { MessagesPage } from "@/pages/employee/messages"
 import { AdminDashboardPage } from "@/pages/admin/dashboard"
 import { AdminEmployeesPage } from "@/pages/admin/employees"
 import { AdminApprovalsPage } from "@/pages/admin/approvals"
@@ -46,6 +47,10 @@ function ScrollToTop() {
 }
 
 export default function App() {
+    <div style={{ padding: "40px", fontSize: "30px" }}>
+      HRMS Working ✅
+    </div>
+
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -62,6 +67,7 @@ export default function App() {
           <Route path="attendance" element={<EmployeeAttendancePage />} />
           <Route path="leaves" element={<EmployeeLeavePage />} />
           <Route path="payroll" element={<EmployeePayrollPage />} />
+          <Route path="messages" element={<MessagesPage />} />
           <Route path="notifications" element={<NotificationCenterPage />} />
           <Route path="settings" element={<SettingsPage role="employee" />} />
         </Route>
@@ -76,6 +82,7 @@ export default function App() {
           <Route path="payroll" element={<AdminPayrollPage />} />
           <Route path="reports" element={<AdminReportsPage />} />
           <Route path="emails" element={<AdminEmailInboxPage />} />
+          <Route path="messages" element={<MessagesPage />} />
           <Route path="notifications" element={<NotificationCenterPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="settings" element={<SettingsPage role="admin" />} />

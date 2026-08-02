@@ -31,6 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { timeAgo } from "@/lib/format"
+import { markConversationRead, presenceFor, unreadCountFor, useConversations } from "@/lib/messages"
 import { useAuth } from "@/contexts/auth-context"
 import { useData } from "@/contexts/data-context"
 import { useTheme } from "@/hooks/use-theme"
@@ -43,13 +44,32 @@ export function Navbar({
   onNavigate: (path: string) => void
 }) {
   const { user, isAdmin, logout } = useAuth()
-  const { notifications, messages, markNotificationRead, markAllNotificationsRead, markMessageRead } = useData()
+  const { notifications, employees, markNotificationRead, markAllNotificationsRead } = useData()
   const { resolvedTheme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
+  const conversations = useConversations()
 
   const unreadNotifications = notifications.filter((n) => !n.read).length
-  const unreadMessages = messages.filter((m) => !m.read).length
+  const unreadMessages = user ? unreadCountFor(conversations, user.id) : 0
+
+  const messagesPath = isAdmin ? "/admin/messages" : "/employee/messages"
+
+  const recentConversations = useMemo(() => {
+    if (!user) return []
+    return conversations
+      .filter((c) => c.participantIds.includes(user.id))
+      .map((c) => {
+        const otherId =
+          c.participantIds.find((p) => p !== user.id) ?? c.participantIds[0]
+        const person = employees.find((e) => e.id === otherId)
+        const last = c.messages[c.messages.length - 1]
+        const unread = c.messages.filter((m) => m.senderId !== user.id && !m.read).length
+        return { c, otherId, person, last, unread }
+      })
+      .sort((a, b) => (b.last?.time ?? "").localeCompare(a.last?.time ?? ""))
+      .slice(0, 6)
+  }, [conversations, user, employees])
 
   const pageTitle = useMemo(() => {
     const seg = location.pathname.split("/").filter(Boolean)[1]
@@ -58,9 +78,12 @@ export function Navbar({
       profile: "My Profile",
       attendance: "Attendance",
       leaves: "Leave Management",
+      messages: "Messages",
       payroll: "Payroll",
       reports: "Reports",
       employees: "Employees",
+      emails: "Email Alerts",
+      "communication-center": "Communication Center",
       settings: "Settings",
     }
     return map[seg ?? "dashboard"] ?? "Dashboard"
@@ -208,41 +231,97 @@ export function Navbar({
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[320px] p-0">
-            <div className="px-4 py-3">
-              <p className="text-sm font-semibold">Messages</p>
-              <p className="text-muted-foreground text-xs">{unreadMessages} unread</p>
+          <DropdownMenuContent align="end" className="w-[340px] p-0">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold">Messages</p>
+                <p className="text-muted-foreground text-xs">
+                  {unreadMessages > 0
+                    ? `${unreadMessages} unread`
+                    : "You're all caught up"}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => navigate(messagesPath)}
+              >
+                View all
+              </Button>
             </div>
             <Separator />
             <div className="max-h-[320px] overflow-y-auto">
-              {messages.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => markMessageRead(m.id)}
-                  className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/60"
-                >
-                  <Avatar name={m.from} size="sm" className="mt-0.5" />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-[13px] font-medium">{m.from}</span>
-                      <span className="text-muted-foreground text-[10px]">
-                        {timeAgo(m.time)}
-                      </span>
-                    </span>
-                    <span
+              {recentConversations.length === 0 ? (
+                <p className="text-muted-foreground px-4 py-8 text-center text-xs">
+                  No conversations yet
+                </p>
+              ) : (
+                recentConversations.map(({ c, otherId, person, last, unread }) => {
+                  const name = person
+                    ? `${person.firstName} ${person.lastName}`
+                    : otherId
+                  const presence = presenceFor(otherId)
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        if (user) markConversationRead(c.id, user.id)
+                        navigate(`${messagesPath}?with=${otherId}`)
+                      }}
                       className={cn(
-                        "text-muted-foreground mt-0.5 line-clamp-2 block text-xs",
-                        !m.read && "text-foreground/90"
+                        "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/60",
+                        unread > 0 && "bg-primary/[0.04]"
                       )}
                     >
-                      {m.text}
-                    </span>
-                  </span>
-                  {!m.read && <span className="bg-primary mt-2 size-1.5 shrink-0 rounded-full" />}
-                </button>
-              ))}
+                      <span className="relative mt-0.5 shrink-0">
+                        <Avatar name={name} size="sm" />
+                        <span
+                          className={cn(
+                            "absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-card",
+                            presence.online ? "bg-emerald-500" : "bg-muted-foreground/40"
+                          )}
+                        />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center justify-between gap-2">
+                          <span className="truncate text-[13px] font-medium">{name}</span>
+                          {last && (
+                            <span className="text-muted-foreground shrink-0 text-[10px]">
+                              {timeAgo(last.time)}
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-muted-foreground mt-0.5 line-clamp-2 block text-xs",
+                            unread > 0 && "text-foreground/90"
+                          )}
+                        >
+                          {last
+                            ? `${last.senderId === user?.id ? "You: " : ""}${last.attachment && !last.text ? `📎 ${last.attachment.name}` : last.text}`
+                            : "No messages yet"}
+                        </span>
+                      </span>
+                      {unread > 0 && (
+                        <span className="bg-primary mt-2 shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white">
+                          {unread}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })
+              )}
             </div>
+            <Separator />
+            <button
+              type="button"
+              onClick={() => navigate(messagesPath)}
+              className="hover:bg-muted/60 text-primary w-full px-4 py-2.5 text-center text-xs font-semibold transition-colors"
+            >
+              Open Messages
+            </button>
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -127,6 +127,56 @@ export interface Message {
   read: boolean
 }
 
+export type ChatAttachmentKind = "image" | "pdf" | "office"
+
+export interface ChatAttachment {
+  id: string
+  name: string
+  kind: ChatAttachmentKind
+  mimeType: string
+  size: number
+  dataUrl: string | null
+}
+
+export interface ChatMessage {
+  id: string
+  senderId: string
+  text: string
+  time: string
+  read: boolean
+  edited: boolean
+  attachment: ChatAttachment | null
+}
+
+export interface Conversation {
+  id: string
+  participantIds: string[]
+  messages: ChatMessage[]
+}
+
+export type AnnouncementTone = "info" | "success" | "warning" | "danger"
+
+export interface Announcement {
+  id: string
+  category: AnnouncementCategory
+  title: string
+  body: string
+  createdBy: string
+  createdAt: string
+  pinned: boolean
+  highPriority: boolean
+}
+
+export type AnnouncementCategory =
+  | "Company Announcement"
+  | "Holiday Notice"
+  | "HR Circular"
+  | "Payroll Notification"
+  | "Leave Policy Update"
+  | "Training Session"
+  | "Meeting Reminder"
+  | "Emergency Notice"
+
 export interface SessionUser {
   id: string
   firstName: string

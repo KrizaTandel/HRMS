@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
-import { Bell, Megaphone, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react"
+import { Megaphone, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react"
 
 import { LogoMark } from "@/components/shared/logo"
 import { useTheme } from "@/hooks/use-theme"
-import { NAV_LINKS, NOTIFICATIONS } from "@/lib/landing-data"
+import { NAV_LINKS } from "@/lib/landing-data"
 import { cn } from "@/lib/utils"
 
 function AnnouncementRibbon({ hidden, onClose }: { hidden: boolean; onClose: () => void }) {
@@ -57,7 +57,6 @@ function PortalBrand() {
 export function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [notifOpen, setNotifOpen] = useState(false)
   const [ribbonHidden, setRibbonHidden] = useState(false)
   const { toggleTheme, resolvedTheme } = useTheme()
 
@@ -72,7 +71,6 @@ export function LandingNavbar() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMobileOpen(false)
-        setNotifOpen(false)
       }
     }
     window.addEventListener("keydown", onKey)
@@ -131,55 +129,6 @@ export function LandingNavbar() {
                 </motion.span>
               </AnimatePresence>
             </button>
-
-            <div className="relative">
-              <button
-                onClick={() => setNotifOpen((o) => !o)}
-                aria-label="Notifications"
-                className="relative flex size-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70"
-              >
-                <Bell className="size-4.5" />
-                <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-950" />
-              </button>
-              <AnimatePresence>
-                {notifOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.18 }}
-                      className="absolute right-0 z-50 mt-3 w-80 origin-top-right overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95"
-                    >
-                      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
-                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
-                          3 new
-                        </span>
-                      </div>
-                      {NOTIFICATIONS.map((n) => (
-                        <div key={n.title} className="flex gap-3 border-b border-slate-50 px-4 py-3 last:border-0 hover:bg-slate-50 dark:border-slate-800/60 dark:hover:bg-slate-800/40">
-                          <span
-                            className={cn(
-                              "mt-1.5 size-2 shrink-0 rounded-full",
-                              n.tone === "success" && "bg-emerald-500",
-                              n.tone === "primary" && "bg-blue-500",
-                              n.tone === "info" && "bg-violet-500"
-                            )}
-                          />
-                          <div className="min-w-0">
-                            <p className="truncate text-[13px] font-medium text-slate-800 dark:text-slate-100">{n.title}</p>
-                            <p className="truncate text-[12px] text-slate-500 dark:text-slate-400">{n.detail}</p>
-                            <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">{n.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
 
             <div className="ml-1 hidden items-center gap-2 sm:flex">
               <Link
